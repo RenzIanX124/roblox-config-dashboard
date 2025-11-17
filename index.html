@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Config Dashboard - NeXoR MGUI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #161616;
+      background-image: url('https://media.discordapp.net/attachments/1128984463167197226/1362400900395569242/pWUtWXByBdk1PqiEEhH18mP8kmA.png?ex=68058df6&is=68043c76&hm=6634de2fb4624f3833aa1f18fc49f69d38ccbc0881a157cc938e60d7d302f668&=&format=webp&quality=lossless&width=1243&height=699');
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: -1;
+    }
+    .press-effect:active {
+      transform: scale(0.96);
+      transition: transform 0.1s ease-in-out;
+    }
+    .tab-button {
+      transition: all 0.2s;
+    }
+    .tab-button.active {
+      background: #ff8c00;
+      color: white;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen text-white bg-[#161616]">
+  <div class="overlay"></div>
+
+  <!-- Header -->
+  <nav class="flex justify-between items-center px-5 md:px-20 py-5 bg-[#202020]">
+    <div class="flex items-center space-x-3">
+      <img src="https://media.discordapp.net/attachments/1138416028834070649/1363463216826552451/New_Project_5.png?ex=68061f92&is=6804ce12&hm=ae801debf746cdc38fc9835aa8bf7dae49a9260721057642d331362e9aa0c9bb&=&format=webp&quality=lossless&width=640&height=640" alt="Logo" class="w-7 h-7 rounded">
+      <span class="text-xl font-semibold">NeXoR MGUI - Config Dashboard</span>
+    </div>
+    <div class="hidden md:flex items-center space-x-6 font-medium text-white">
+      <a href="https://discord.com/invite/CgKwY8yYEx" target="_blank" class="bg-white text-black px-4 py-1 rounded-full font-semibold hover:brightness-110 transition-all duration-200">Discord</a>
+      <a href="https://youtube.com/@renzianx?si=Sbmw0WnnTvQVYamv" target="_blank" class="bg-red-500 text-white px-4 py-1 rounded-full font-semibold hover:brightness-110 transition-all duration-200">Youtube</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-6 overflow-auto">
+    <div class="max-w-7xl mx-auto">
+      <!-- Tab Navigation -->
+      <div class="flex gap-2 mb-6 bg-[#202020] p-2 rounded-xl">
+        <button onclick="switchTab('webhooks')" class="tab-button active px-6 py-3 rounded-lg font-semibold" id="tab-webhooks">
+          Webhooks
+        </button>
+        <button onclick="switchTab('products')" class="tab-button px-6 py-3 rounded-lg font-semibold" id="tab-products">
+          Products
+        </button>
+        <button onclick="switchTab('settings')" class="tab-button px-6 py-3 rounded-lg font-semibold" id="tab-settings">
+          Settings
+        </button>
+        <button onclick="switchTab('export')" class="tab-button px-6 py-3 rounded-lg font-semibold" id="tab-export">
+          Export Code
+        </button>
+      </div>
+
+      <!-- Webhooks Tab -->
+      <div id="content-webhooks" class="tab-content">
+        <div class="bg-[#202020] p-6 rounded-2xl shadow-lg">
+          <h2 class="text-2xl font-bold mb-6">Discord Webhooks</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Visit Webhook URL</label>
+              <input type="url" id="webhook-visit" placeholder="https://discord.com/api/webhooks/..." 
+                     class="w-full px-4 py-3 bg-[#161616] rounded-xl border border-[#333] focus:outline-none focus:border-orange-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Purchase Webhook URL</label>
+              <input type="url" id="webhook-purchase" placeholder="https://discord.com/api/webhooks/..." 
+                     class="w-full px-4 py-3 bg-[#161616] rounded-xl border border-[#333] focus:outline-none focus:border-orange-500" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Tab -->
+      <div id="content-products" class="tab-content hidden">
+        <div class="bg-[#202020] p-6 rounded-2xl shadow-lg">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Product Configuration</h2>
+            <button onclick="addProduct()" class="bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold hover:brightness-110 press-effect">
+              + Add Product
+            </button>
+          </div>
+          <div id="products-list" class="space-y-4">
+            <!-- Products will be added here dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div id="content-settings" class="tab-content hidden">
+        <div class="bg-[#202020] p-6 rounded-2xl shadow-lg">
+          <h2 class="text-2xl font-bold mb-6">Bot Settings</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Bot Username</label>
+              <input type="text" id="setting-username" value="X-FREE FGP" 
+                     class="w-full px-4 py-3 bg-[#161616] rounded-xl border border-[#333] focus:outline-none focus:border-orange-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Avatar URL</label>
+              <input type="url" id="setting-avatar" 
+                     class="w-full px-4 py-3 bg-[#161616] rounded-xl border border-[#333] focus:outline-none focus:border-orange-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Footer Text</label>
+              <input type="text" id="setting-footer-text" value="Powered BY: X-FREE FGP" 
+                     class="w-full px-4 py-3 bg-[#161616] rounded-xl border border-[#333] focus:outline-none focus:border-orange-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Footer Icon URL</label>
+              <input type="url" id="setting-footer-icon" 
+                     class="w-full px-4 py-3 bg-[#161616] rounded-xl border border-[#333] focus:outline-none focus:border-orange-500" />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Visit Color (Hex)</label>
+                <input type="color" id="setting-color-visit" value="#FFC361" 
+                       class="w-full h-12 bg-[#161616] rounded-xl border border-[#333] cursor-pointer" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Purchase Color (Hex)</label>
+                <input type="color" id="setting-color-purchase" value="#00FF00" 
+                       class="w-full h-12 bg-[#161616] rounded-xl border border-[#333] cursor-pointer" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Tab -->
+      <div id="content-export" class="tab-content hidden">
+        <div class="bg-[#202020] p-6 rounded-2xl shadow-lg">
+          <h2 class="text-2xl font-bold mb-4">Export Configuration</h2>
+          <p class="text-gray-400 mb-6">Copy the generated code and paste it into your Roblox Studio scripts.</p>
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label class="text-sm font-medium">Configure.lua</label>
+                <button onclick="copyCode('config')" class="bg-orange-500 text-white px-3 py-1 rounded-lg text-sm hover:brightness-110 press-effect">
+                  Copy
+                </button>
+              </div>
+              <textarea id="export-config" readonly 
+                        class="w-full h-64 px-4 py-3 bg-[#161616] rounded-xl border border-[#333] font-mono text-sm resize-none"></textarea>
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label class="text-sm font-medium">ProductData.lua</label>
+                <button onclick="copyCode('products')" class="bg-orange-500 text-white px-3 py-1 rounded-lg text-sm hover:brightness-110 press-effect">
+                  Copy
+                </button>
+              </div>
+              <textarea id="export-products" readonly 
+                        class="w-full h-64 px-4 py-3 bg-[#161616] rounded-xl border border-[#333] font-mono text-sm resize-none"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <div class="mt-6 flex gap-4">
+        <button onclick="saveConfig()" class="flex-1 bg-orange-500 text-white font-semibold py-4 rounded-xl hover:brightness-110 transition duration-200 press-effect">
+          Save Configuration
+        </button>
+        <button onclick="loadConfig()" class="bg-[#202020] text-white font-semibold px-8 py-4 rounded-xl hover:bg-[#252525] transition duration-200 press-effect">
+          Load Saved
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-[#202020] text-center text-sm py-4 text-gray-300">
+    &copy; 2025 NeXoR MGUI. All rights reserved.
+  </footer>
+
+  <script>
+    // State management
+    let products = [];
+
+    // Initialize with default products
+    function initializeProducts() {
+      products = [
+        { name: "Esok Sekolah", id: "3451938894", price: "30" },
+        { name: "3x Esok Sekolah", id: "3453220448", price: "70" },
+        { name: "La Secret Combinasion", id: "3451942573", price: "80" },
+        { name: "3x La Secret Combinasion", id: "3456016082", price: "200" }
+      ];
+      renderProducts();
+    }
+
+    // Tab switching
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('content-' + tabName).classList.remove('hidden');
+      document.getElementById('tab-' + tabName).classList.add('active');
+      
+      if (tabName === 'export') {
+        generateExportCode();
+      }
+    }
+
+    // Product management
+    function addProduct() {
+      products.push({ name: "", id: "", price: "" });
+      renderProducts();
+    }
+
+    function removeProduct(index) {
+      products.splice(index, 1);
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const container = document.getElementById('products-list');
+      container.innerHTML = products.map((product, index) => `
+        <div class="bg-[#161616] p-4 rounded-xl border border-[#333]">
+          <div class="flex justify-between items-start mb-3">
+            <h3 class="font-semibold text-lg">Product ${index + 1}</h3>
+            <button onclick="removeProduct(${index})" class="text-red-400 hover:text-red-300">
+              ✕
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Product Name</label>
+              <input type="text" value="${product.name}" 
+                     onchange="products[${index}].name = this.value"
+                     placeholder="e.g., Esok Sekolah"
+                     class="w-full px-3 py-2 bg-[#202020] rounded-lg border border-[#333] text-sm focus:outline-none focus:border-orange-500" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Product ID</label>
+              <input type="text" value="${product.id}" 
+                     onchange="products[${index}].id = this.value"
+                     placeholder="e.g., 3451938894"
+                     class="w-full px-3 py-2 bg-[#202020] rounded-lg border border-[#333] text-sm focus:outline-none focus:border-orange-500" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Price (Robux)</label>
+              <input type="text" value="${product.price}" 
+                     onchange="products[${index}].price = this.value"
+                     placeholder="e.g., 30"
+                     class="w-full px-3 py-2 bg-[#202020] rounded-lg border border-[#333] text-sm focus:outline-none focus:border-orange-500" />
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Generate export code
+    function generateExportCode() {
+      const visitWebhook = document.getElementById('webhook-visit').value || "YOUR_VISIT_WEBHOOK_URL";
+      const purchaseWebhook = document.getElementById('webhook-purchase').value || "YOUR_PURCHASE_WEBHOOK_URL";
+      const username = document.getElementById('setting-username').value || "X-FREE FGP";
+      const avatar = document.getElementById('setting-avatar').value || "";
+      const footerText = document.getElementById('setting-footer-text').value || "Powered BY: X-FREE FGP";
+      const footerIcon = document.getElementById('setting-footer-icon').value || "";
+      const visitColor = document.getElementById('setting-color-visit').value;
+      const purchaseColor = document.getElementById('setting-color-purchase').value;
+
+      // Generate Config code
+      const configCode = `local Config = {}
+
+-- Webhook URLs
+Config.Webhooks = {
+	["Visit"] = "${visitWebhook}",
+	["Purchase"] = "${purchaseWebhook}"
+}
+
+-- Webhook Settings
+Config.Settings = {
+	Username = "${username}",
+	AvatarUrl = "${avatar}",
+	FooterText = "${footerText}",
+	FooterIconUrl = "${footerIcon}"
+}
+
+-- Colors
+Config.Colors = {
+	Visit = 0x${visitColor.slice(1).toUpperCase()},
+	Purchase = 0x${purchaseColor.slice(1).toUpperCase()}
+}
+
+return Config`;
+
+      // Generate ProductData code
+      const productsObj = products.map(p => `\t["${p.name}"] = ${p.id}`).join(',\n');
+      const actionTextObj = products.map(p => `\t["${p.name}"] = "Buy for ${p.price}R$"`).join(',\n');
+
+      const productDataCode = `local ProductData = {}
+local MarketplaceService = game:GetService("MarketplaceService")
+
+-- Define your product IDs here
+ProductData.Products = {
+${productsObj}
+}
+
+-- Define custom ActionText for each product
+ProductData.ActionText = {
+${actionTextObj}
+}
+
+ProductData.DefaultActionText = "Buy for {price}R$"
+ProductData.ProductInfo = {}
+
+function ProductData:GetProductId(productName)
+	return self.Products[productName]
+end
+
+function ProductData:GetProductInfo(productName)
+	local productId = self:GetProductId(productName)
+	if not productId then
+		warn("Product not found: " .. productName)
+		return nil
+	end
+	if self.ProductInfo[productName] then
+		return self.ProductInfo[productName]
+	end
+	local success, productInfo = pcall(function()
+		return MarketplaceService:GetProductInfo(productId, Enum.InfoType.Product)
+	end)
+	if success and productInfo then
+		self.ProductInfo[productName] = productInfo
+		return productInfo
+	else
+		warn("Failed to fetch product info for: " .. productName)
+		return nil
+	end
+end
+
+function ProductData:GetProductPrice(productName)
+	local info = self:GetProductInfo(productName)
+	return info and info.PriceInRobux or nil
+end
+
+function ProductData:GetActionText(productName)
+	local price = self:GetProductPrice(productName)
+	if not price then
+		return "Buy Product"
+	end
+	local textTemplate = self.ActionText[productName] or self.DefaultActionText
+	local formattedText = textTemplate:gsub("{price}", tostring(price))
+	return formattedText
+end
+
+function ProductData:PreloadAllProducts()
+	for productName, _ in pairs(self.Products) do
+		self:GetProductInfo(productName)
+	end
+end
+
+return ProductData`;
+
+      document.getElementById('export-config').value = configCode;
+      document.getElementById('export-products').value = productDataCode;
+    }
+
+    // Copy code to clipboard
+    function copyCode(type) {
+      const textarea = type === 'config' ? 
+        document.getElementById('export-config') : 
+        document.getElementById('export-products');
+      
+      textarea.select();
+      document.execCommand('copy');
+      
+      alert('Code copied to clipboard!');
+    }
+
+    // Save configuration
+    function saveConfig() {
+      const config = {
+        webhooks: {
+          visit: document.getElementById('webhook-visit').value,
+          purchase: document.getElementById('webhook-purchase').value
+        },
+        settings: {
+          username: document.getElementById('setting-username').value,
+          avatar: document.getElementById('setting-avatar').value,
+          footerText: document.getElementById('setting-footer-text').value,
+          footerIcon: document.getElementById('setting-footer-icon').value,
+          visitColor: document.getElementById('setting-color-visit').value,
+          purchaseColor: document.getElementById('setting-color-purchase').value
+        },
+        products: products
+      };
+      
+      localStorage.setItem('roblox_config', JSON.stringify(config));
+      alert('Configuration saved successfully!');
+    }
+
+    // Load configuration
+    function loadConfig() {
+      const saved = localStorage.getItem('roblox_config');
+      if (!saved) {
+        alert('No saved configuration found!');
+        return;
+      }
+      
+      const config = JSON.parse(saved);
+      
+      document.getElementById('webhook-visit').value = config.webhooks.visit || '';
+      document.getElementById('webhook-purchase').value = config.webhooks.purchase || '';
+      document.getElementById('setting-username').value = config.settings.username || '';
+      document.getElementById('setting-avatar').value = config.settings.avatar || '';
+      document.getElementById('setting-footer-text').value = config.settings.footerText || '';
+      document.getElementById('setting-footer-icon').value = config.settings.footerIcon || '';
+      document.getElementById('setting-color-visit').value = config.settings.visitColor || '#FFC361';
+      document.getElementById('setting-color-purchase').value = config.settings.purchaseColor || '#00FF00';
+      
+      products = config.products || [];
+      renderProducts();
+      
+      alert('Configuration loaded successfully!');
+    }
+
+    // Initialize on load
+    window.onload = function() {
+      initializeProducts();
+      const saved = localStorage.getItem('roblox_config');
+      if (saved) {
+        loadConfig();
+      }
+    };
+  </script>
+</body>
+</html>
