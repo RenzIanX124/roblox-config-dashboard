@@ -607,3 +607,237 @@ local GamePassData = { GamePasses = CloudConfig.GamePasses }</code></pre>
           const data = await checkResponse.json();
           sha = data.sha;
         }
+
+        // Create/update file
+        const updateUrl = `https://api.github.com/repos/${config.github.username}/${config.github.repo}/contents/config.json`;
+        const updateData = {
+          message: `Update config - ${new Date().toLocaleString()}`,
+          content: base64Content,
+          branch: 'main'
+        };
+
+        if (sha) {
+          updateData.sha = sha;
+        }
+
+        const updateResponse = await fetch(updateUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${config.github.token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updateData)
+        });
+
+        if (updateResponse.ok) {
+          const result = await updateResponse.json();
+          const rawUrl = `https://raw.githubusercontent.com/${config.github.username}/${config.github.repo}/main/config.json`;
+          alert(`✅ Configuration saved to GitHub!\n\nYour Roblox game will now fetch from:\n${rawUrl}\n\nChanges will apply when game servers restart.`);
+        } else {
+          const error = await updateResponse.text();
+          alert(`❌ Failed to save to GitHub:\n${error}`);
+        }
+      } catch (error) {
+        alert('❌ Error saving to GitHub: ' + error.message);
+      }
+    }
+
+    // Tab switching
+    function switchTab(tab) {
+      const tabs = ['webhooks', 'settings', 'products', 'gamepasses', 'colors'];
+      tabs.forEach(t => {
+        document.getElementById(`section-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).classList.remove('active');
+      });
+      document.getElementById(`section-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-${tab}`).classList.add('active');
+    }
+
+    // Product management
+    function addProduct() {
+      const name = prompt('Enter product name:');
+      if (!name) return;
+      const id = prompt('Enter product ID:');
+      if (!id) return;
+      const price = prompt('Enter action text (e.g., "Buy for 30R$"):');
+      
+      config.products[name] = {
+        id: parseInt(id),
+        actionText: price || ''
+      };
+      saveToStorage();
+      renderProducts();
+    }
+
+    function removeProduct(name) {
+      if (confirm(`Remove product "${name}"?`)) {
+        delete config.products[name];
+        saveToStorage();
+        renderProducts();
+      }
+    }
+
+    function renderProducts() {
+      const list = document.getElementById('products-list');
+      list.innerHTML = '';
+      
+      if (Object.keys(config.products).length === 0) {
+        list.innerHTML = '<p class="text-gray-400 text-center py-8">No products added yet</p>';
+        return;
+      }
+
+      for (const [name, data] of Object.entries(config.products)) {
+        const div = document.createElement('div');
+        div.className = 'product-item p-4 rounded-lg flex justify-between items-center';
+        div.innerHTML = `
+          <div>
+            <p class="font-semibold">${name}</p>
+            <p class="text-sm text-gray-400">ID: ${data.id} • ${data.actionText}</p>
+          </div>
+          <button onclick="removeProduct('${name.replace(/'/g, "\\'")}'))" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm">
+            Delete
+          </button>
+        `;
+        list.appendChild(div);
+      }
+    }
+
+    // Game pass management
+    function addGamePass() {
+      const name = prompt('Enter game pass name:');
+      if (!name) return;
+      const id = prompt('Enter game pass ID:');
+      if (!id) return;
+      
+      config.gamepasses[name] = parseInt(id);
+      saveToStorage();
+      renderGamePasses();
+    }
+
+    function removeGamePass(name) {
+      if (confirm(`Remove game pass "${name}"?`)) {
+        delete config.gamepasses[name];
+        saveToStorage();
+        renderGamePasses();
+      }
+    }
+
+    function renderGamePasses() {
+      const list = document.getElementById('gamepasses-list');
+      list.innerHTML = '';
+      
+      if (Object.keys(config.gamepasses).length === 0) {
+        list.innerHTML = '<p class="text-gray-400 text-center py-8">No game passes added yet</p>';
+        return;
+      }
+
+      for (const [name, id] of Object.entries(config.gamepasses)) {
+        const div = document.createElement('div');
+        div.className = 'product-item p-4 rounded-lg flex justify-between items-center';
+        div.innerHTML = `
+          <div>
+            <p class="font-semibold">${name}</p>
+            <p class="text-sm text-gray-400">ID: ${id}</p>
+          </div>
+          <button onclick="removeGamePass('${name.replace(/'/g, "\\'")}'))" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm">
+            Delete
+          </button>
+        `;
+        list.appendChild(div);
+      }
+    }
+
+    // Color management
+    function updateColorPickers() {
+      const visitHex = config.colors.visit.replace('0x', '#');
+      const purchaseHex = config.colors.purchase.replace('0x', '#');
+      
+      document.getElementById('color-visit-picker').value = visitHex;
+      document.getElementById('color-purchase-picker').value = purchaseHex;
+      document.getElementById('color-visit').value = config.colors.visit;
+      document.getElementById('color-purchase').value = config.colors.purchase;
+    }
+
+    document.getElementById('color-visit-picker').addEventListener('input', (e) => {
+      const hex = '0x' + e.target.value.substring(1).toUpperCase();
+      document.getElementById('color-visit').value = hex;
+      config.colors.visit = hex;
+      saveToStorage();
+    });
+
+    document.getElementById('color-purchase-picker').addEventListener('input', (e) => {
+      const hex = '0x' + e.target.value.substring(1).toUpperCase();
+      document.getElementById('color-purchase').value = hex;
+      config.colors.purchase = hex;
+      saveToStorage();
+    });
+
+    // Auto-save inputs
+    ['webhook-visit', 'webhook-purchase', 'setting-username', 'setting-avatar', 
+     'setting-footer-text', 'setting-footer-icon', 'color-visit', 'color-purchase',
+     'github-username', 'github-repo', 'github-token'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', () => {
+          saveFromInputs();
+        });
+      }
+    });
+
+    function saveFromInputs() {
+      config.webhooks.visit = document.getElementById('webhook-visit').value;
+      config.webhooks.purchase = document.getElementById('webhook-purchase').value;
+      config.settings.username = document.getElementById('setting-username').value;
+      config.settings.avatarUrl = document.getElementById('setting-avatar').value;
+      config.settings.footerText = document.getElementById('setting-footer-text').value;
+      config.settings.footerIconUrl = document.getElementById('setting-footer-icon').value;
+      config.colors.visit = document.getElementById('color-visit').value;
+      config.colors.purchase = document.getElementById('color-purchase').value;
+      saveToStorage();
+    }
+
+    function saveToStorage() {
+      localStorage.setItem('robloxConfig', JSON.stringify(config));
+    }
+
+    function loadFromStorage() {
+      const saved = localStorage.getItem('robloxConfig');
+      if (saved) {
+        config = JSON.parse(saved);
+      }
+      
+      document.getElementById('webhook-visit').value = config.webhooks.visit;
+      document.getElementById('webhook-purchase').value = config.webhooks.purchase;
+      document.getElementById('setting-username').value = config.settings.username;
+      document.getElementById('setting-avatar').value = config.settings.avatarUrl;
+      document.getElementById('setting-footer-text').value = config.settings.footerText;
+      document.getElementById('setting-footer-icon').value = config.settings.footerIconUrl;
+      document.getElementById('color-visit').value = config.colors.visit;
+      document.getElementById('color-purchase').value = config.colors.purchase;
+      document.getElementById('github-username').value = config.github.username || '';
+      document.getElementById('github-repo').value = config.github.repo || '';
+      document.getElementById('github-token').value = config.github.token || '';
+    }
+
+    // Tutorial functions
+    function showTutorial() {
+      document.getElementById('tutorial-modal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeTutorial() {
+      document.getElementById('tutorial-modal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+
+    // Close tutorial on background click
+    document.getElementById('tutorial-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeTutorial();
+      }
+    });
+  </script>
+
+</body>
+</html>
