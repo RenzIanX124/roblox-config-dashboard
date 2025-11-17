@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Game Configuration - X-FREE FGP</title>
+  <title>Cloud Config - X-FREE FGP</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -44,29 +44,78 @@
     .tab-btn.active {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    .status-connected { background: #10b981; }
+    .status-disconnected { background: #ef4444; }
+    .pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .5; }
+    }
   </style>
 </head>
 <body class="min-h-screen text-white p-6">
   
   <!-- Header -->
   <div class="max-w-7xl mx-auto mb-8">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between flex-wrap gap-4">
       <div>
-        <h1 class="text-4xl font-bold mb-2">Game Configuration</h1>
-        <p class="text-gray-400">Manage webhooks, products, and game passes</p>
+        <h1 class="text-4xl font-bold mb-2">Cloud Configuration</h1>
+        <p class="text-gray-400">Real-time sync with GitHub</p>
+        <div class="mt-2 flex items-center gap-2">
+          <span class="status-dot" id="status-indicator"></span>
+          <span id="status-text" class="text-sm">Not configured</span>
+        </div>
       </div>
-      <div class="flex gap-3">
+      <div class="flex gap-3 flex-wrap">
+        <button onclick="showSetup()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
+          ⚙️ GitHub Setup
+        </button>
+        <button onclick="testConnection()" class="px-6 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-semibold transition">
+          🔌 Test Connection
+        </button>
+        <button onclick="saveToGitHub()" class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition">
+          ☁️ Save to Cloud
+        </button>
         <button onclick="showTutorial()" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition">
           📖 Tutorial
         </button>
-        <button onclick="exportConfig()" class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition">
-          📥 Export Config
-        </button>
-        <button onclick="importConfig()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
-          📤 Import Config
-        </button>
       </div>
     </div>
+  </div>
+
+  <!-- GitHub Setup Card -->
+  <div class="max-w-7xl mx-auto mb-6 card p-6 rounded-2xl" id="github-setup-card">
+    <h2 class="text-2xl font-bold mb-4">🔗 GitHub Connection</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-2">GitHub Username</label>
+        <input type="text" id="github-username" placeholder="yourusername" 
+               class="w-full px-4 py-3 rounded-lg text-white" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-2">Repository Name</label>
+        <input type="text" id="github-repo" placeholder="roblox-game-config" 
+               class="w-full px-4 py-3 rounded-lg text-white" />
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium mb-2">GitHub Personal Access Token</label>
+        <input type="password" id="github-token" placeholder="ghp_xxxxxxxxxxxx" 
+               class="w-full px-4 py-3 rounded-lg text-white" />
+        <p class="text-xs text-gray-400 mt-1">Need help? Click "📖 Tutorial" to learn how to get your token</p>
+      </div>
+    </div>
+    <button onclick="saveGitHubConfig()" class="mt-4 px-6 py-2 btn-primary rounded-lg font-semibold">
+      Save GitHub Settings
+    </button>
   </div>
 
   <!-- Tabs -->
@@ -200,266 +249,201 @@
 
   <!-- Tutorial Modal -->
   <div id="tutorial-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-6" style="display: none;">
-    <div class="bg-[#202020] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
+    <div class="bg-[#202020] rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
       <div class="sticky top-0 bg-[#202020] p-6 border-b border-gray-700 flex justify-between items-center">
-        <h2 class="text-3xl font-bold">📖 Implementation Tutorial</h2>
+        <h2 class="text-3xl font-bold">📖 Complete Setup Guide</h2>
         <button onclick="closeTutorial()" class="text-4xl hover:text-red-500 transition">&times;</button>
       </div>
       
       <div class="p-6 space-y-8">
         
-        <!-- Step 1 -->
-        <div class="card p-6 rounded-xl">
-          <div class="flex items-start gap-4">
-            <div class="bg-purple-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl flex-shrink-0">1</div>
-            <div class="flex-1">
-              <h3 class="text-2xl font-bold mb-3">Create Discord Webhooks</h3>
-              <ol class="space-y-2 text-gray-300 list-decimal list-inside">
-                <li>Open your Discord server</li>
-                <li>Go to <strong>Server Settings</strong> → <strong>Integrations</strong> → <strong>Webhooks</strong></li>
-                <li>Click <strong>"New Webhook"</strong></li>
-                <li>Create two webhooks:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li><strong>"Visit Webhook"</strong> - for player join notifications</li>
-                    <li><strong>"Purchase Webhook"</strong> - for purchase notifications</li>
-                  </ul>
-                </li>
-                <li>Copy both webhook URLs</li>
-                <li>Paste them in the <strong>🔗 Webhooks</strong> tab of this dashboard</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="card p-6 rounded-xl">
-          <div class="flex items-start gap-4">
-            <div class="bg-purple-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl flex-shrink-0">2</div>
-            <div class="flex-1">
-              <h3 class="text-2xl font-bold mb-3">Configure Settings</h3>
-              <ol class="space-y-2 text-gray-300 list-decimal list-inside">
-                <li>Go to the <strong>⚙️ Settings</strong> tab</li>
-                <li>Customize your webhook bot appearance:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li><strong>Bot Username</strong> - Display name for webhooks</li>
-                    <li><strong>Avatar URL</strong> - Profile picture for the bot</li>
-                    <li><strong>Footer Text</strong> - Text at bottom of embeds</li>
-                    <li><strong>Footer Icon URL</strong> - Small icon in footer</li>
-                  </ul>
-                </li>
-                <li>All changes auto-save!</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="card p-6 rounded-xl">
-          <div class="flex items-start gap-4">
-            <div class="bg-purple-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl flex-shrink-0">3</div>
-            <div class="flex-1">
-              <h3 class="text-2xl font-bold mb-3">Add Your Products</h3>
-              <ol class="space-y-2 text-gray-300 list-decimal list-inside">
-                <li>Go to the <strong>🛒 Products</strong> tab</li>
-                <li>Click <strong>"+ Add Product"</strong></li>
-                <li>Enter:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li><strong>Product Name</strong> - Display name (e.g., "Esok Sekolah")</li>
-                    <li><strong>Product ID</strong> - Your Roblox developer product ID</li>
-                    <li><strong>Action Text</strong> - Button text (e.g., "Buy for 30R$")</li>
-                  </ul>
-                </li>
-                <li>Repeat for all your products</li>
-                <li>To delete, click the red <strong>"Delete"</strong> button</li>
-              </ol>
-              <div class="mt-4 p-4 bg-blue-900 bg-opacity-30 rounded-lg border border-blue-500">
-                <p class="text-sm"><strong>💡 Tip:</strong> To find your Product ID, go to Roblox Creator Dashboard → Your Game → Monetization → Developer Products</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 4 -->
-        <div class="card p-6 rounded-xl">
-          <div class="flex items-start gap-4">
-            <div class="bg-purple-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl flex-shrink-0">4</div>
-            <div class="flex-1">
-              <h3 class="text-2xl font-bold mb-3">Add Game Passes</h3>
-              <ol class="space-y-2 text-gray-300 list-decimal list-inside">
-                <li>Go to the <strong>🎮 Game Passes</strong> tab</li>
-                <li>Click <strong>"+ Add Game Pass"</strong></li>
-                <li>Enter:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li><strong>Game Pass Name</strong> - Display name (e.g., "VIP")</li>
-                    <li><strong>Game Pass ID</strong> - Your Roblox game pass ID</li>
-                  </ul>
-                </li>
-                <li>Repeat for all your game passes</li>
-              </ol>
-              <div class="mt-4 p-4 bg-blue-900 bg-opacity-30 rounded-lg border border-blue-500">
-                <p class="text-sm"><strong>💡 Tip:</strong> Find Game Pass IDs in Creator Dashboard → Your Game → Monetization → Passes</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 5 -->
-        <div class="card p-6 rounded-xl">
-          <div class="flex items-start gap-4">
-            <div class="bg-purple-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl flex-shrink-0">5</div>
-            <div class="flex-1">
-              <h3 class="text-2xl font-bold mb-3">Customize Colors</h3>
-              <ol class="space-y-2 text-gray-300 list-decimal list-inside">
-                <li>Go to the <strong>🎨 Colors</strong> tab</li>
-                <li>Use the color pickers to select:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li><strong>Visit Color</strong> - Embed color for player joins (default: Orange)</li>
-                    <li><strong>Purchase Color</strong> - Embed color for purchases (default: Green)</li>
-                  </ul>
-                </li>
-                <li>Colors are shown in Discord embeds</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 6 -->
-        <div class="card p-6 rounded-xl">
-          <div class="flex items-start gap-4">
-            <div class="bg-green-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl flex-shrink-0">6</div>
-            <div class="flex-1">
-              <h3 class="text-2xl font-bold mb-3">Export Configuration</h3>
-              <ol class="space-y-2 text-gray-300 list-decimal list-inside">
-                <li>Click the <strong>"📥 Export Config"</strong> button at the top</li>
-                <li>Three files will download automatically:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li><code class="bg-black px-2 py-1 rounded">Configure.lua</code></li>
-                    <li><code class="bg-black px-2 py-1 rounded">ProductData.lua</code></li>
-                    <li><code class="bg-black px-2 py-1 rounded">GamePassData.lua</code></li>
-                  </ul>
-                </li>
-                <li>Check your Downloads folder</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 7 -->
+        <!-- GitHub Setup -->
         <div class="card p-6 rounded-xl bg-gradient-to-r from-purple-900 to-blue-900">
-          <div class="flex items-start gap-4">
-            <div class="bg-white text-purple-900 rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl flex-shrink-0">7</div>
-            <div class="flex-1">
-              <h3 class="text-2xl font-bold mb-3">Upload to Roblox Studio</h3>
-              <ol class="space-y-3 text-gray-200 list-decimal list-inside">
-                <li>Open <strong>Roblox Studio</strong> and your game</li>
-                <li>Enable <strong>HTTP Requests</strong>:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li>Go to <strong>Home</strong> → <strong>Game Settings</strong></li>
-                    <li>Click <strong>Security</strong> tab</li>
-                    <li>Enable <strong>"Allow HTTP Requests"</strong></li>
-                  </ul>
-                </li>
-                <li class="mt-3">Upload <code class="bg-black bg-opacity-50 px-2 py-1 rounded">Configure.lua</code>:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li>Right-click <strong>ServerScriptService</strong></li>
-                    <li>Insert the script and name it <strong>"Configure"</strong></li>
-                    <li>Paste the content from the downloaded file</li>
-                  </ul>
-                </li>
-                <li class="mt-3">Upload <code class="bg-black bg-opacity-50 px-2 py-1 rounded">ProductData.lua</code>:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li>Navigate to <strong>ServerScriptService → X-FREE → ConfigFGP</strong></li>
-                    <li>Find or create <strong>"ProductData"</strong> module</li>
-                    <li>Replace with the downloaded file content</li>
-                  </ul>
-                </li>
-                <li class="mt-3">Upload <code class="bg-black bg-opacity-50 px-2 py-1 rounded">GamePassData.lua</code>:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li>Navigate to <strong>ReplicatedStorage</strong></li>
-                    <li>Find or create <strong>"GamePassData"</strong> module</li>
-                    <li>Replace with the downloaded file content</li>
-                  </ul>
-                </li>
-                <li class="mt-3"><strong>Save</strong> and <strong>Publish</strong> your game!</li>
+          <h3 class="text-2xl font-bold mb-4">🚀 PART 1: GitHub Setup (One-Time)</h3>
+          
+          <div class="space-y-6">
+            <div>
+              <h4 class="text-xl font-bold mb-3">Step 1: Create GitHub Account</h4>
+              <ol class="space-y-2 text-gray-200 list-decimal list-inside ml-4">
+                <li>Go to <a href="https://github.com/signup" target="_blank" class="text-blue-400 underline">github.com/signup</a></li>
+                <li>Create a free account (if you don't have one)</li>
+                <li>Verify your email</li>
+              </ol>
+            </div>
+
+            <div>
+              <h4 class="text-xl font-bold mb-3">Step 2: Create a Repository</h4>
+              <ol class="space-y-2 text-gray-200 list-decimal list-inside ml-4">
+                <li>Click the <strong>"+"</strong> icon (top-right) → <strong>"New repository"</strong></li>
+                <li>Repository name: <code class="bg-black px-2 py-1 rounded">roblox-game-config</code> (or any name)</li>
+                <li>Description: "Configuration for my Roblox game"</li>
+                <li>Select <strong>"Public"</strong> (so Roblox can read it)</li>
+                <li>Check <strong>"Add a README file"</strong></li>
+                <li>Click <strong>"Create repository"</strong></li>
+              </ol>
+            </div>
+
+            <div>
+              <h4 class="text-xl font-bold mb-3">Step 3: Create Personal Access Token</h4>
+              <ol class="space-y-2 text-gray-200 list-decimal list-inside ml-4">
+                <li>Click your profile picture → <strong>"Settings"</strong></li>
+                <li>Scroll down → Click <strong>"Developer settings"</strong> (bottom left)</li>
+                <li>Click <strong>"Personal access tokens"</strong> → <strong>"Tokens (classic)"</strong></li>
+                <li>Click <strong>"Generate new token"</strong> → <strong>"Generate new token (classic)"</strong></li>
+                <li>Note: "Roblox Game Config"</li>
+                <li>Expiration: <strong>"No expiration"</strong> (or choose a date)</li>
+                <li>Check the box: <strong>"repo"</strong> (Full control of private repositories)</li>
+                <li>Click <strong>"Generate token"</strong> at the bottom</li>
+                <li>⚠️ <strong>COPY THE TOKEN NOW!</strong> (You can't see it again)</li>
+                <li>It looks like: <code class="bg-black px-2 py-1 rounded text-xs">ghp_xxxxxxxxxxxxxxxxxxxx</code></li>
+              </ol>
+            </div>
+
+            <div>
+              <h4 class="text-xl font-bold mb-3">Step 4: Enter GitHub Info in Dashboard</h4>
+              <ol class="space-y-2 text-gray-200 list-decimal list-inside ml-4">
+                <li>In this dashboard, scroll to <strong>"🔗 GitHub Connection"</strong></li>
+                <li>Enter your <strong>GitHub Username</strong></li>
+                <li>Enter your <strong>Repository Name</strong> (e.g., "roblox-game-config")</li>
+                <li>Paste your <strong>Personal Access Token</strong></li>
+                <li>Click <strong>"Save GitHub Settings"</strong></li>
               </ol>
             </div>
           </div>
         </div>
 
-        <!-- Folder Structure -->
-        <div class="card p-6 rounded-xl bg-gray-900">
-          <h3 class="text-2xl font-bold mb-4">📁 Required Folder Structure</h3>
-          <pre class="bg-black p-4 rounded-lg text-sm text-green-400 overflow-x-auto"><code>🎮 Your Game
-├── 📂 ServerScriptService
-│   ├── 📄 Configure (ModuleScript)
-│   ├── 📄 WebhookHandler (Script) - Your existing webhook script
-│   └── 📂 X-FREE
-│       └── 📂 ConfigFGP
-│           └── 📄 ProductData (ModuleScript)
-│
-├── 📂 ReplicatedStorage
-│   └── 📄 GamePassData (ModuleScript)
-│
-└── 📂 Workspace
-    └── 📂 Pets (Your product proximity prompts)</code></pre>
+        <!-- Configure Dashboard -->
+        <div class="card p-6 rounded-xl">
+          <h3 class="text-2xl font-bold mb-4">⚙️ PART 2: Configure Your Game</h3>
+          <ol class="space-y-3 text-gray-300 list-decimal list-inside ml-4">
+            <li><strong>Webhooks Tab:</strong> Add your Discord webhook URLs</li>
+            <li><strong>Settings Tab:</strong> Customize bot name, avatar, footer</li>
+            <li><strong>Products Tab:</strong> Add all your developer products</li>
+            <li><strong>Game Passes Tab:</strong> Add all your game passes</li>
+            <li><strong>Colors Tab:</strong> Set embed colors</li>
+            <li>Click <strong>"☁️ Save to Cloud"</strong> - this uploads to GitHub!</li>
+          </ol>
         </div>
 
-        <!-- Testing -->
-        <div class="card p-6 rounded-xl">
-          <div class="flex items-start gap-4">
-            <div class="bg-yellow-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl flex-shrink-0">8</div>
-            <div class="flex-1">
-              <h3 class="text-2xl font-bold mb-3">Test Your Setup</h3>
-              <ol class="space-y-2 text-gray-300 list-decimal list-inside">
-                <li><strong>Test Player Join</strong>:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li>Play your game in Studio or publish it</li>
-                    <li>Check your Discord "Visit Webhook" channel</li>
-                    <li>You should see a join notification</li>
-                  </ul>
-                </li>
-                <li class="mt-3"><strong>Test Purchases</strong>:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li>Make a test purchase in-game</li>
-                    <li>Check your "Purchase Webhook" channel</li>
-                    <li>You should see purchase details</li>
-                  </ul>
-                </li>
-                <li class="mt-3">If webhooks don't work, check:
-                  <ul class="ml-6 mt-2 space-y-1 list-disc list-inside">
-                    <li>HTTP Requests are enabled in Game Settings</li>
-                    <li>Webhook URLs are correct (no typos)</li>
-                    <li>Studio Output for error messages</li>
-                  </ul>
-                </li>
+        <!-- Roblox Setup -->
+        <div class="card p-6 rounded-xl bg-gradient-to-r from-green-900 to-teal-900">
+          <h3 class="text-2xl font-bold mb-4">🎮 PART 3: Roblox Studio Setup</h3>
+          
+          <div class="space-y-6">
+            <div>
+              <h4 class="text-xl font-bold mb-3">Step 1: Enable HTTP Requests</h4>
+              <ol class="space-y-2 text-gray-200 list-decimal list-inside ml-4">
+                <li>Open your game in <strong>Roblox Studio</strong></li>
+                <li>Go to <strong>Home</strong> → <strong>Game Settings</strong></li>
+                <li>Click <strong>Security</strong> tab</li>
+                <li>Enable <strong>"Allow HTTP Requests"</strong></li>
+                <li>Click <strong>"Save"</strong></li>
               </ol>
             </div>
+
+            <div>
+              <h4 class="text-xl font-bold mb-3">Step 2: Create CloudConfig Module</h4>
+              <ol class="space-y-2 text-gray-200 list-decimal list-inside ml-4">
+                <li>In <strong>ServerScriptService</strong>, create a new <strong>ModuleScript</strong></li>
+                <li>Name it: <strong>"CloudConfig"</strong></li>
+                <li>Copy the code from the code block below</li>
+                <li>Replace <code class="bg-black px-2 py-1 rounded text-xs">YOUR_GITHUB_USERNAME</code></li>
+                <li>Replace <code class="bg-black px-2 py-1 rounded text-xs">YOUR_REPO_NAME</code></li>
+              </ol>
+            </div>
+
+            <div class="bg-black p-4 rounded-lg overflow-x-auto">
+              <pre class="text-green-400 text-sm"><code>-- ServerScriptService/CloudConfig
+local Http = game:GetService("HttpService")
+
+local CloudConfig = {}
+CloudConfig.Config = {}
+CloudConfig.Products = {}
+CloudConfig.GamePasses = {}
+
+local GITHUB_USER = "YOUR_GITHUB_USERNAME"  -- Change this!
+local GITHUB_REPO = "YOUR_REPO_NAME"        -- Change this!
+local CONFIG_URL = "https://raw.githubusercontent.com/"..GITHUB_USER.."/"..GITHUB_REPO.."/main/config.json"
+
+function CloudConfig:Load()
+    local success, result = pcall(function()
+        local response = Http:GetAsync(CONFIG_URL)
+        return Http:JSONDecode(response)
+    end)
+    
+    if success and result then
+        self.Config = result.config or {}
+        self.Products = result.products or {}
+        self.GamePasses = result.gamepasses or {}
+        print("✅ Cloud config loaded successfully!")
+        return true
+    else
+        warn("❌ Failed to load cloud config:", result)
+        return false
+    end
+end
+
+-- Auto-load on require
+CloudConfig:Load()
+
+return CloudConfig</code></pre>
+            </div>
+
+            <div>
+              <h4 class="text-xl font-bold mb-3">Step 3: Update Your Webhook Script</h4>
+              <ol class="space-y-2 text-gray-200 list-decimal list-inside ml-4">
+                <li>Open your existing webhook handler script</li>
+                <li>At the top, replace the old config lines with:</li>
+              </ol>
+              <div class="bg-black p-4 rounded-lg overflow-x-auto mt-2">
+                <pre class="text-green-400 text-sm"><code>-- Replace this:
+-- local Config = require(ServerScript:WaitForChild("Configure"))
+
+-- With this:
+local CloudConfig = require(ServerScript:WaitForChild("CloudConfig"))
+local Config = CloudConfig.Config
+local ProductData = { Products = CloudConfig.Products }
+local GamePassData = { GamePasses = CloudConfig.GamePasses }</code></pre>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="text-xl font-bold mb-3">Step 4: Test Everything</h4>
+              <ol class="space-y-2 text-gray-200 list-decimal list-inside ml-4">
+                <li>Click <strong>"Play"</strong> in Roblox Studio</li>
+                <li>Check the <strong>Output</strong> window for: "✅ Cloud config loaded successfully!"</li>
+                <li>Join the game - check Discord for join notification</li>
+                <li>Test a purchase - check Discord for purchase notification</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="card p-6 rounded-xl bg-gradient-to-r from-yellow-900 to-orange-900">
+          <h3 class="text-2xl font-bold mb-4">🔄 How Real-Time Updates Work</h3>
+          <div class="space-y-3 text-gray-200">
+            <p><strong>1. You update the dashboard</strong> → Change webhooks, add products, etc.</p>
+            <p><strong>2. Click "☁️ Save to Cloud"</strong> → Uploads <code class="bg-black px-2 py-1 rounded">config.json</code> to GitHub</p>
+            <p><strong>3. GitHub stores your config</strong> → Public URL: <code class="bg-black px-2 py-1 rounded text-xs">raw.githubusercontent.com/.../config.json</code></p>
+            <p><strong>4. Roblox fetches on server start</strong> → Every time your game server starts, it downloads the latest config</p>
+            <p><strong>5. Changes are live!</strong> → No need to republish your game</p>
+          </div>
+          <div class="mt-4 p-4 bg-black bg-opacity-40 rounded-lg">
+            <p class="text-sm"><strong>⚠️ Note:</strong> Changes apply when servers restart. Active servers need to be restarted to get new config.</p>
           </div>
         </div>
 
         <!-- Tips -->
-        <div class="card p-6 rounded-xl bg-gradient-to-r from-green-900 to-teal-900">
+        <div class="card p-6 rounded-xl">
           <h3 class="text-2xl font-bold mb-4">💡 Pro Tips</h3>
-          <ul class="space-y-2 text-gray-200 list-disc list-inside">
-            <li>Your configuration is saved in your browser - you can come back anytime to edit</li>
-            <li>Re-export after making changes and re-upload to Roblox Studio</li>
-            <li>Keep webhook URLs private - don't share them publicly</li>
-            <li>Test webhooks in a private Discord server first</li>
-            <li>Bookmark this page for easy access</li>
-            <li>You can have different configurations for different games</li>
-          </ul>
-        </div>
-
-        <!-- Need Help -->
-        <div class="card p-6 rounded-xl bg-red-900 bg-opacity-30 border border-red-500">
-          <h3 class="text-2xl font-bold mb-3">🆘 Need Help?</h3>
-          <p class="text-gray-300 mb-4">If you encounter issues:</p>
           <ul class="space-y-2 text-gray-300 list-disc list-inside">
-            <li>Check the <strong>Output</strong> window in Roblox Studio for errors</li>
-            <li>Verify all module scripts are in the correct locations</li>
-            <li>Make sure HTTP Requests are enabled in Game Settings</li>
-            <li>Test webhook URLs in a webhook testing tool first</li>
-            <li>Check that Product IDs and Game Pass IDs are correct</li>
+            <li>Always click <strong>"🔌 Test Connection"</strong> before saving to verify GitHub access</li>
+            <li>Keep your GitHub token secure - don't share it!</li>
+            <li>Your config is public on GitHub (needed for Roblox to read it)</li>
+            <li>Don't put sensitive data in the config (like admin passwords)</li>
+            <li>You can view/edit <code>config.json</code> directly on GitHub if needed</li>
+            <li>Bookmark this dashboard for quick access</li>
           </ul>
         </div>
 
@@ -467,7 +451,7 @@
 
       <div class="sticky bottom-0 bg-[#202020] p-6 border-t border-gray-700">
         <button onclick="closeTutorial()" class="w-full py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold text-lg">
-          Got it! Close Tutorial
+          Got it! Start Configuring
         </button>
       </div>
     </div>
@@ -476,6 +460,11 @@
   <script>
     // Data storage
     let config = {
+      github: {
+        username: '',
+        repo: '',
+        token: ''
+      },
       webhooks: {
         visit: '',
         purchase: ''
@@ -500,271 +489,121 @@
       renderProducts();
       renderGamePasses();
       updateColorPickers();
+      updateStatus();
     };
 
-    // Tab switching
-    function switchTab(tab) {
-      const tabs = ['webhooks', 'settings', 'products', 'gamepasses', 'colors'];
-      tabs.forEach(t => {
-        document.getElementById(`section-${t}`).classList.add('hidden');
-        document.getElementById(`tab-${t}`).classList.remove('active');
-      });
-      document.getElementById(`section-${tab}`).classList.remove('hidden');
-      document.getElementById(`tab-${tab}`).classList.add('active');
-    }
-
-    // Product management
-    function addProduct() {
-      const name = prompt('Enter product name:');
-      if (!name) return;
-      const id = prompt('Enter product ID:');
-      if (!id) return;
-      const price = prompt('Enter action text (e.g., "Buy for 30R$"):');
+    // Status management
+    function updateStatus() {
+      const indicator = document.getElementById('status-indicator');
+      const text = document.getElementById('status-text');
       
-      config.products[name] = {
-        id: parseInt(id),
-        actionText: price || ''
-      };
-      saveToStorage();
-      renderProducts();
-    }
-
-    function removeProduct(name) {
-      if (confirm(`Remove product "${name}"?`)) {
-        delete config.products[name];
-        saveToStorage();
-        renderProducts();
+      if (config.github.username && config.github.repo && config.github.token) {
+        indicator.className = 'status-dot status-connected pulse';
+        text.textContent = `Connected to ${config.github.username}/${config.github.repo}`;
+      } else {
+        indicator.className = 'status-dot status-disconnected';
+        text.textContent = 'Not configured - Click "GitHub Setup"';
       }
     }
 
-    function renderProducts() {
-      const list = document.getElementById('products-list');
-      list.innerHTML = '';
+    // GitHub functions
+    function saveGitHubConfig() {
+      config.github.username = document.getElementById('github-username').value.trim();
+      config.github.repo = document.getElementById('github-repo').value.trim();
+      config.github.token = document.getElementById('github-token').value.trim();
       
-      if (Object.keys(config.products).length === 0) {
-        list.innerHTML = '<p class="text-gray-400 text-center py-8">No products added yet</p>';
+      if (!config.github.username || !config.github.repo || !config.github.token) {
+        alert('❌ Please fill in all GitHub fields!');
+        return;
+      }
+      
+      saveToStorage();
+      updateStatus();
+      alert('✅ GitHub settings saved! Now you can save your config to the cloud.');
+    }
+
+    function showSetup() {
+      document.getElementById('github-setup-card').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('github-username').focus();
+    }
+
+    async function testConnection() {
+      if (!config.github.username || !config.github.repo || !config.github.token) {
+        alert('❌ Please configure GitHub settings first!');
+        showSetup();
         return;
       }
 
-      for (const [name, data] of Object.entries(config.products)) {
-        const div = document.createElement('div');
-        div.className = 'product-item p-4 rounded-lg flex justify-between items-center';
-        div.innerHTML = `
-          <div>
-            <p class="font-semibold">${name}</p>
-            <p class="text-sm text-gray-400">ID: ${data.id} • ${data.actionText}</p>
-          </div>
-          <button onclick="removeProduct('${name}')" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm">
-            Delete
-          </button>
-        `;
-        list.appendChild(div);
-      }
-    }
-
-    // Game pass management
-    function addGamePass() {
-      const name = prompt('Enter game pass name:');
-      if (!name) return;
-      const id = prompt('Enter game pass ID:');
-      if (!id) return;
+      const url = `https://api.github.com/repos/${config.github.username}/${config.github.repo}`;
       
-      config.gamepasses[name] = parseInt(id);
-      saveToStorage();
-      renderGamePasses();
-    }
-
-    function removeGamePass(name) {
-      if (confirm(`Remove game pass "${name}"?`)) {
-        delete config.gamepasses[name];
-        saveToStorage();
-        renderGamePasses();
-      }
-    }
-
-    function renderGamePasses() {
-      const list = document.getElementById('gamepasses-list');
-      list.innerHTML = '';
-      
-      if (Object.keys(config.gamepasses).length === 0) {
-        list.innerHTML = '<p class="text-gray-400 text-center py-8">No game passes added yet</p>';
-        return;
-      }
-
-      for (const [name, id] of Object.entries(config.gamepasses)) {
-        const div = document.createElement('div');
-        div.className = 'product-item p-4 rounded-lg flex justify-between items-center';
-        div.innerHTML = `
-          <div>
-            <p class="font-semibold">${name}</p>
-            <p class="text-sm text-gray-400">ID: ${id}</p>
-          </div>
-          <button onclick="removeGamePass('${name}')" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm">
-            Delete
-          </button>
-        `;
-        list.appendChild(div);
-      }
-    }
-
-    // Color management
-    function updateColorPickers() {
-      const visitHex = config.colors.visit.replace('0x', '#');
-      const purchaseHex = config.colors.purchase.replace('0x', '#');
-      
-      document.getElementById('color-visit-picker').value = visitHex;
-      document.getElementById('color-purchase-picker').value = purchaseHex;
-      document.getElementById('color-visit').value = config.colors.visit;
-      document.getElementById('color-purchase').value = config.colors.purchase;
-    }
-
-    document.getElementById('color-visit-picker').addEventListener('input', (e) => {
-      const hex = '0x' + e.target.value.substring(1).toUpperCase();
-      document.getElementById('color-visit').value = hex;
-      config.colors.visit = hex;
-      saveToStorage();
-    });
-
-    document.getElementById('color-purchase-picker').addEventListener('input', (e) => {
-      const hex = '0x' + e.target.value.substring(1).toUpperCase();
-      document.getElementById('color-purchase').value = hex;
-      config.colors.purchase = hex;
-      saveToStorage();
-    });
-
-    // Auto-save inputs
-    ['webhook-visit', 'webhook-purchase', 'setting-username', 'setting-avatar', 
-     'setting-footer-text', 'setting-footer-icon', 'color-visit', 'color-purchase'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('input', () => {
-          saveFromInputs();
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `token ${config.github.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
         });
-      }
-    });
 
-    function saveFromInputs() {
-      config.webhooks.visit = document.getElementById('webhook-visit').value;
-      config.webhooks.purchase = document.getElementById('webhook-purchase').value;
-      config.settings.username = document.getElementById('setting-username').value;
-      config.settings.avatarUrl = document.getElementById('setting-avatar').value;
-      config.settings.footerText = document.getElementById('setting-footer-text').value;
-      config.settings.footerIconUrl = document.getElementById('setting-footer-icon').value;
-      config.colors.visit = document.getElementById('color-visit').value;
-      config.colors.purchase = document.getElementById('color-purchase').value;
-      saveToStorage();
+        if (response.ok) {
+          alert('✅ Connection successful! GitHub repository found.');
+        } else if (response.status === 404) {
+          alert('❌ Repository not found. Please check your username and repo name.');
+        } else if (response.status === 401) {
+          alert('❌ Invalid token. Please check your Personal Access Token.');
+        } else {
+          alert(`❌ Connection failed: ${response.status} ${response.statusText}`);
+        }
+      } catch (error) {
+        alert('❌ Network error: ' + error.message);
+      }
     }
 
-    function saveToStorage() {
-      localStorage.setItem('robloxConfig', JSON.stringify(config));
-    }
-
-    function loadFromStorage() {
-      const saved = localStorage.getItem('robloxConfig');
-      if (saved) {
-        config = JSON.parse(saved);
+    async function saveToGitHub() {
+      if (!config.github.username || !config.github.repo || !config.github.token) {
+        alert('❌ Please configure GitHub settings first!');
+        showSetup();
+        return;
       }
+
+      // Prepare config data
+      const configData = {
+        config: {
+          webhooks: {
+            visit: config.webhooks.visit,
+            purchase: config.webhooks.purchase
+          },
+          settings: {
+            username: config.settings.username,
+            avatarUrl: config.settings.avatarUrl,
+            footerText: config.settings.footerText,
+            footerIconUrl: config.settings.footerIconUrl
+          },
+          colors: {
+            visit: config.colors.visit,
+            purchase: config.colors.purchase
+          }
+        },
+        products: config.products,
+        gamepasses: config.gamepasses,
+        lastUpdated: new Date().toISOString()
+      };
+
+      const content = JSON.stringify(configData, null, 2);
+      const base64Content = btoa(unescape(encodeURIComponent(content)));
+
+      // Check if file exists
+      const checkUrl = `https://api.github.com/repos/${config.github.username}/${config.github.repo}/contents/config.json`;
       
-      document.getElementById('webhook-visit').value = config.webhooks.visit;
-      document.getElementById('webhook-purchase').value = config.webhooks.purchase;
-      document.getElementById('setting-username').value = config.settings.username;
-      document.getElementById('setting-avatar').value = config.settings.avatarUrl;
-      document.getElementById('setting-footer-text').value = config.settings.footerText;
-      document.getElementById('setting-footer-icon').value = config.settings.footerIconUrl;
-      document.getElementById('color-visit').value = config.colors.visit;
-      document.getElementById('color-purchase').value = config.colors.purchase;
-    }
+      try {
+        let sha = null;
+        const checkResponse = await fetch(checkUrl, {
+          headers: {
+            'Authorization': `token ${config.github.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
 
-    // Export configuration
-    function exportConfig() {
-      const luaConfig = `local Config = {}
-
--- Webhook URLs
-Config.Webhooks = {
-	["Visit"] = "${config.webhooks.visit}",
-	["Purchase"] = "${config.webhooks.purchase}"
-}
-
--- Webhook Settings
-Config.Settings = {
-	Username = "${config.settings.username}",
-	AvatarUrl = "${config.settings.avatarUrl}",
-	FooterText = "${config.settings.footerText}",
-	FooterIconUrl = "${config.settings.footerIconUrl}"
-}
-
--- Colors
-Config.Colors = {
-	Visit = ${config.colors.visit},
-	Purchase = ${config.colors.purchase}
-}
-
-return Config`;
-
-      const productLua = `local ProductData = {}
-
--- Define your product IDs here
-ProductData.Products = {
-${Object.entries(config.products).map(([name, data]) => `\t["${name}"] = ${data.id}`).join(',\n')}
-}
-
--- Define custom ActionText for each product
-ProductData.ActionText = {
-${Object.entries(config.products).map(([name, data]) => `\t["${name}"] = "${data.actionText}"`).join(',\n')}
-}
-
-return ProductData`;
-
-      const gamePassLua = `local GamePassData = {}
-
-GamePassData.GamePasses = {
-${Object.entries(config.gamepasses).map(([name, id]) => `\t["${name}"] = ${id}`).join(',\n')}
-}
-
-return GamePassData`;
-
-      // Create downloadable files
-      downloadFile('Configure.lua', luaConfig);
-      downloadFile('ProductData.lua', productLua);
-      downloadFile('GamePassData.lua', gamePassLua);
-      
-      alert('✅ Configuration files exported! Check your downloads folder.');
-    }
-
-    function downloadFile(filename, content) {
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    function importConfig() {
-      alert('Import feature: Paste your existing Lua config and it will be parsed automatically. (Feature coming soon)');
-    }
-
-    // Tutorial functions
-    function showTutorial() {
-      document.getElementById('tutorial-modal').style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeTutorial() {
-      document.getElementById('tutorial-modal').style.display = 'none';
-      document.body.style.overflow = 'auto';
-    }
-
-    // Close tutorial on background click
-    document.getElementById('tutorial-modal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeTutorial();
-      }
-    });
-  </script>
-
-</body>
-</html>
+        if (checkResponse.ok) {
+          const data = await checkResponse.json();
+          sha = data.sha;
+        }
